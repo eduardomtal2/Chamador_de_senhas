@@ -7,7 +7,7 @@
 /* ======================================================
    FILA - guarda as senhas esperando para ser chamadas
    Cada nó tem: numero da senha, tipo e proximo nó
-     Tipo: 'N' = Normal, 'P' = Prioritario, 'E' = Exame
+     Tipo: 'N' = Normal, 'P' = Prioritario
      A fila é encadeada, com ponteiros para o primeiro (frente) e ultimo (tras)
      Contadores separados para cada tipo de senha (para gerar o numero correto)
      A função desenfileirar percorre a fila procurando a senha de maior prioridade (P > E > N)
@@ -20,7 +20,7 @@
 
 typedef struct NoFila {
     int numero;
-    char tipo;          /* 'N' = Normal, 'P' = Prioritario, 'E' = Exame */
+    char tipo;          /* 'N' = Normal, 'P' = Prioritario */
     struct NoFila *prox;
 } NoFila;
 
@@ -29,7 +29,6 @@ NoFila *tras   = NULL;  /* ultimo da fila   */
 
 int contador_normal = 1;
 int contador_prior  = 1;
-int contador_exame  = 1;
 
 /* Adiciona uma senha no final da fila */
 void enfileirar(char tipo) {
@@ -39,7 +38,6 @@ void enfileirar(char tipo) {
     novo->prox = NULL;
 
     if (tipo == 'P') novo->numero = contador_prior++;
-    else if (tipo == 'E') novo->numero = contador_exame++;
     else novo->numero = contador_normal++;
 
     if (tras == NULL) {
@@ -54,9 +52,9 @@ void enfileirar(char tipo) {
 NoFila *desenfileirar(void) {
     if (frente == NULL) return NULL;
 
-    char prioridade[] = {'P', 'E', 'N'};
+    char prioridade[] = {'P', 'N'};
 
-    for (int t = 0; t < 3; t++) {
+    for (int t = 0; t < 2; t++) {
         NoFila *prev        = NULL;
         NoFila *senha_atual = frente;
 
@@ -129,7 +127,7 @@ void salvar(void) {
 
     /* Salva contadores */
     fprintf(fp, "CONTADORES %d %d %d\n",
-            contador_normal, contador_prior, contador_exame);
+            contador_normal, contador_prior);
 
     /* Salva fila */
     NoFila *cf = frente;
@@ -168,7 +166,7 @@ void carregar(void) {
     while (fscanf(fp, "%s", secao) == 1) {
         if (strcmp(secao, "CONTADORES") == 0) {
             fscanf(fp, "%d %d %d",
-                   &contador_normal, &contador_prior, &contador_exame);
+                   &contador_normal, &contador_prior);
 
         } else if (strcmp(secao, "FILA") == 0) {
             fscanf(fp, " %c %d", &tipo, &numero);
@@ -200,7 +198,7 @@ void limpar_fila(void) {
         senha_atual = proximo;
     }
     frente = tras = NULL;
-    contador_normal = contador_prior = contador_exame = 1;
+    contador_normal = contador_prior = 1;
 }
 
 /* ======================================================
@@ -223,11 +221,10 @@ int main(void) {
         printf("Fila: %d senha(s)\n\n", contar_fila());
         printf("1 - Gerar senha Normal\n");
         printf("2 - Gerar senha Prioritaria\n");
-        printf("3 - Gerar senha Exame\n");
-        printf("4 - Chamar proxima senha\n");
-        printf("5 - Listar fila de espera\n");
-        printf("6 - Ver historico de chamadas\n");
-        printf("7 - Limpar fila de espera\n");
+        printf("3 - Chamar proxima senha\n");
+        printf("4 - Listar fila de espera\n");
+        printf("5 - Ver historico de chamadas\n");
+        printf("6 - Limpar fila de espera\n");
         printf("0 - Sair\n");
         printf("Escolha: ");
         scanf("%d", &opcao);
@@ -241,10 +238,6 @@ int main(void) {
             printf("  Senha P%d gerada!\n", contador_prior - 1);
 
         } else if (opcao == 3) {
-            enfileirar('E');
-            printf("  Senha E%d gerada!\n", contador_exame - 1);
-
-        } else if (opcao == 4) {
             NoFila *chamado = desenfileirar();
             if (chamado == NULL) {
                 printf("  Nenhuma senha na fila!\n");
@@ -255,15 +248,15 @@ int main(void) {
                 free(chamado);
             }
 
-        } else if (opcao == 5) {
+        } else if (opcao == 4) {
             printf("\n  --- Fila de espera ---\n");
             listar_fila();
 
-        } else if (opcao == 6) {
+        } else if (opcao == 5) {
             printf("\n  --- Historico (mais recente primeiro) ---\n");
             listar_historico();
 
-        } else if (opcao == 7) {
+        } else if (opcao == 6) {
             limpar_fila();
             printf("  Fila de espera limpa!\n");
         } 
